@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GuideToAnime - Your guide to what anime to watch</title>
+{% include "_head.html" %}
+<meta name="description" content="Browse anime series and movies, see which have Hindi dubs, tick off what you have watched and plan how long it will take to finish.">
+<style>
+  :root { --bg:#060914; --panel:#0d1326; --panel2:#141c36; --text:#f2f6ff; --muted:#8e9bc0;
+          --accent:#5ec8ff; --accent-ink:#04121f; --purple:#a259ff; --border:#1d2a4d; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:radial-gradient(1200px 500px at 50% -10%,#14234a 0%,var(--bg) 60%) no-repeat,var(--bg);
+         color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  a { color:inherit; text-decoration:none; }
+  button, input, select { font-family:inherit; font-size:14px; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 12px; }
+  button { cursor:pointer; } button:hover, select:hover { border-color:var(--accent); }
+  .btn { display:inline-block; padding:9px 16px; border-radius:10px; border:1px solid var(--border); font-weight:600; font-size:14px; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+  .btn:hover { border-color:var(--accent); }
+
+  /* header */
+  .top { position:sticky; top:0; z-index:20; background:rgba(6,9,20,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); }
+  .top-in { max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .logo { font-size:24px; font-weight:800; letter-spacing:-.5px; }
+  .logo span { color:var(--accent); text-shadow:0 0 18px rgba(94,200,255,.55); }
+  nav { display:flex; gap:4px; flex-wrap:wrap; }
+  nav button { background:none; border:0; border-radius:8px; padding:8px 12px; font-weight:600; color:var(--muted); }
+  nav button:hover, nav button.on { color:var(--accent); background:var(--panel2); }
+  .spacer { flex:1; }
+  .search { display:flex; gap:6px; } .search input { width:200px; }
+  .auth { display:flex; gap:8px; }
+
+  /* notice bar (like the Telegram bar on animedubhindi) */
+  .notice { background:linear-gradient(90deg,#10224a,#2a1659); border-bottom:1px solid var(--border); }
+  .notice-in { max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:14px; }
+  .notice b { color:var(--accent); }
+
+  main { max-width:1200px; margin:0 auto; padding:20px 16px 10px; }
+  .sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 0 14px; flex-wrap:wrap; }
+  .sec-head h2 { margin:0; font-size:20px; } .sec-head span { color:var(--muted); font-size:13px; }
+
+  /* post grid */
+  .grid { display:grid; gap:18px; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); }
+  .post { background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .15s,border-color .15s,box-shadow .15s; }
+  .post:hover { transform:translateY(-4px); border-color:var(--accent); box-shadow:0 8px 28px rgba(94,200,255,.16); }
+  .thumb { position:relative; aspect-ratio:3/4; background:var(--panel2); }
+  .thumb img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .thumb .ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:48px; font-weight:800; color:rgba(255,255,255,.85);
+               background:linear-gradient(135deg,hsl(var(--h) 60% 35%),hsl(calc(var(--h) + 40) 60% 22%)); }
+  .badges { position:absolute; top:8px; left:8px; display:flex; flex-direction:column; gap:4px; z-index:2; }
+  .badge { font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(0,0,0,.7); width:fit-content; }
+  .badge.dub { background:#f2f6ff; color:#0d1326; } .badge.essential { background:var(--purple); } .badge.recommended { background:var(--accent); color:var(--accent-ink); }
+  .post-body { padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .post h3 { margin:0; font-size:14px; line-height:1.35; font-weight:650; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .by { color:var(--muted); font-size:12px; margin-top:auto; }
+  .empty { text-align:center; color:var(--muted); padding:60px 0; }
+
+  /* pagination */
+  .pager { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:26px 0 8px; }
+  .pager button { min-width:38px; } .pager button.on { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+  .pager button:disabled { opacity:.4; cursor:default; }
+
+  /* characters */
+  .chars { max-width:1200px; margin:0 auto; padding:14px 16px 6px; }
+  .strip { display:flex; gap:12px; overflow-x:auto; padding:4px 2px 12px; }
+  .strip::-webkit-scrollbar { height:6px; } .strip::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+  .char { flex:none; width:100px; text-align:center; }
+  .char img { width:100px; height:134px; object-fit:cover; object-position:center 15%; border-radius:12px; border:1px solid var(--border); display:block; background:var(--panel2); transition:transform .15s,border-color .15s; }
+  .char:hover img { transform:translateY(-3px); border-color:var(--accent); }
+  .char span { display:block; margin-top:5px; font-size:11px; color:var(--muted); line-height:1.25; }
+
+  /* footer */
+  footer { margin-top:30px; border-top:1px solid var(--border); background:var(--panel); }
+  .foot { max-width:1200px; margin:0 auto; padding:26px 16px; text-align:center; color:var(--muted); font-size:13px; }
+  .foot h4 { margin:0 0 8px; color:var(--text); letter-spacing:1px; }
+  .foot p { margin:0 auto 12px; max-width:640px; line-height:1.55; }
+  .foot nav { justify-content:center; margin-bottom:10px; }
+  @media (max-width:640px) { .search input { width:130px; } .grid { grid-template-columns:repeat(2,1fr); gap:12px; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <a class="logo" href="/">Guide<span>ToAnime</span></a>
+  <nav id="nav">
+    <button data-f="all" class="on">Home</button>
+    <button data-f="hindi">Hindi Dub</button>
+    <button data-f="Movie">Movies</button>
+    <button data-f="Series">Series</button>
+    <button data-f="essential">Must Watch</button>
+  </nav>
+  <select id="genre" aria-label="Genres"><option value="">Genres</option></select>
+  <div class="spacer"></div>
+  <div class="search"><input type="search" id="q" placeholder="Search anime..." autocomplete="off"></div>
+  <div class="auth"><a class="btn" href="/login">Log in</a><a class="btn primary" href="/login">Sign up</a></div>
+</div></header>
+
+<div class="notice"><div class="notice-in">
+  <div><b>Free account:</b> tick off the anime you have watched and see exactly when you will finish.</div>
+  <a class="btn primary" href="/login">Create free account</a>
+</div></div>
+
+<main>
+  <div class="sec-head"><h2 id="heading">Latest anime</h2><span id="count"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>No anime found. Try a different search.</div>
+  <div class="pager" id="pager"></div>
+</main>
+
+<section class="chars" id="chars" hidden>
+  <div class="sec-head"><h2>Characters</h2><span>Famous faces from your favourite anime</span></div>
+  <div class="strip" id="strip"></div>
+</section>
+
+<footer><div class="foot">
+  <h4>DISCLAIMER</h4>
+  <p>GuideToAnime does not host any videos or files. It is a guide and watch tracker that helps you decide what to watch and keep count of what you have finished.</p>
+  <nav><a class="btn" href="/login">Log in</a><a class="btn" href="/login">Sign up</a></nav>
+  <p style="margin:0 0 10px">{% include "_links.html" %}</p>
+  Copyright &copy; <span id="yr"></span> GuideToAnime. All rights reserved.
+  <div style="margin-top:8px;font-size:12px">Posters and details courtesy of AniList, MyAnimeList and Kitsu.</div>
+</div></footer>
+
+<script>
+const ALL = {{ titles|tojson }};
+const AV = {{ avatars|tojson }};
+const $ = (id) => document.getElementById(id);
+const PER = 16;
+let f = "all", page = 1;
+ALL.sort((a, b) => (b.added || 0) - (a.added || 0));          // newest first, like a blog front page
+
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hue = (t) => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const fmt = (ts) => ts ? new Date(ts * 1000).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "";
+
+[...new Set(ALL.flatMap((x) => x.genres))].filter((g) => g && g !== "Unsorted").sort()
+  .forEach((g) => { const o = document.createElement("option"); o.value = g; o.textContent = g; $("genre").appendChild(o); });
+
+function filtered() {
+  const q = $("q").value.trim().toLowerCase(), g = $("genre").value;
+  return ALL.filter((x) =>
+    (f === "all" || (f === "hindi" && x.hindi) || (f === "essential" && x.tier === "essential") || x.kind === f) &&
+    (!g || x.genres.includes(g)) && (!q || x.title.toLowerCase().includes(q)));
+}
+
+function render() {
+  const rows = filtered(), pages = Math.max(1, Math.ceil(rows.length / PER));
+  page = Math.min(page, pages);
+  const slice = rows.slice((page - 1) * PER, page * PER), grid = $("grid");
+  grid.innerHTML = "";
+  slice.forEach((x) => {
+    const a = document.createElement("a");
+    a.className = "post"; a.href = "/login"; a.title = "Log in to track " + x.title;
+    const img = x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
+    a.innerHTML = `<div class="thumb"><div class="ph" style="--h:${hue(x.title)}">${esc(x.title[0] || "?")}</div>${img}
+        <div class="badges">${x.hindi ? '<span class="badge dub">Hindi Dub</span>' : ""}${x.tier !== "optional" ? `<span class="badge ${x.tier}">${x.tier === "essential" ? "Must watch" : "Recommended"}</span>` : ""}</div></div>
+      <div class="post-body"><h3></h3><div class="by">${x.kind}${x.year ? " · " + x.year : ""}${x.added ? " · " + fmt(x.added) : ""}</div></div>`;
+    a.querySelector("h3").textContent = x.title;
+    grid.appendChild(a);
+  });
+  $("empty").hidden = rows.length > 0;
+  $("count").textContent = rows.length + " titles";
+  $("heading").textContent = ({ all: "Latest anime", hindi: "Hindi dubbed anime", Movie: "Anime movies", Series: "Anime series", essential: "Must-watch anime" })[f];
+  // pagination: 1 2 ... N  Next
+  const pg = $("pager"); pg.innerHTML = "";
+  const add = (label, p, on, dis) => { const b = document.createElement("button"); b.textContent = label; if (on) b.className = "on"; b.disabled = !!dis;
+    b.onclick = () => { page = p; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }; pg.appendChild(b); };
+  if (pages > 1) {
+    const set = new Set([1, 2, page - 1, page, page + 1, pages]);
+    let last = 0;
+    [...set].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b).forEach((p) => {
+      if (p - last > 1) { const d = document.createElement("span"); d.textContent = "…"; d.style.alignSelf = "center"; d.style.color = "var(--muted)"; pg.appendChild(d); }
+      add(p, p, p === page); last = p;
+    });
+    add("Next →", page + 1, false, page === pages);
+  }
+}
+
+document.querySelectorAll("#nav button").forEach((b) => b.onclick = () => {
+  f = b.dataset.f; page = 1;
+  document.querySelectorAll("#nav button").forEach((x) => x.classList.toggle("on", x === b));
+  render();
+});
+let t; $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => { page = 1; render(); }, 150); });
+$("genre").addEventListener("change", () => { page = 1; render(); });
+$("yr").textContent = new Date().getFullYear();
+render();
+
+// ---- characters row: local picture first, then AniList as a backup ----
+async function remote(name) {
+  try {
+    const q = "query($s:String){Character(search:$s){image{large}}}";
+    const r = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q, variables: { s: name } }) });
+    return ((((await r.json()).data || {}).Character || {}).image || {}).large || "";
+  } catch (e) { return ""; }
+}
+AV.filter((a) => !a.hidden).sort(() => Math.random() - 0.5).slice(0, 14).forEach((a) => {
+  const d = document.createElement("div"), im = new Image(), sp = document.createElement("span");
+  d.className = "char"; im.alt = a.name; im.referrerPolicy = "no-referrer"; sp.textContent = a.name;
+  let tried = false;
+  im.onerror = async () => { if (tried || a.pic) { d.remove(); return; } tried = true; const u = await remote(a.name); u ? im.src = u : d.remove(); };
+  im.src = a.pic || ("/static/avatars/" + a.key + ".jpg");
+  d.append(im, sp); $("strip").appendChild(d); $("chars").hidden = false;
+});
+</script>
+</body>
+</html>

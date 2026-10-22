@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ heading }} - GuideToAnime</title>
+<meta name="description" content="{{ heading }} for GuideToAnime.">
+{% include "_head.html" %}
+<style>
+  :root { --bg:#060914; --panel:#0d1326; --text:#f2f6ff; --muted:#8e9bc0; --accent:#5ec8ff; --border:#1d2a4d; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(1000px 420px at 50% -10%,#14234a 0%,var(--bg) 60%) no-repeat,var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.65; }
+  a { color:var(--accent); }
+  header { border-bottom:1px solid var(--border); background:rgba(6,9,20,.94); }
+  .wrap { max-width:760px; margin:0 auto; padding:0 18px; }
+  header .wrap { padding:14px 18px; display:flex; justify-content:space-between; align-items:center; }
+  .logo { font-size:22px; font-weight:800; letter-spacing:-.5px; color:var(--text); text-decoration:none; } .logo span { color:var(--accent); }
+  main { padding:28px 18px 10px; } h1 { margin:0 0 4px; font-size:30px; } h2 { margin:26px 0 6px; font-size:18px; }
+  .upd { color:var(--muted); font-size:13px; margin-bottom:10px; } p, li { color:#d4dcf2; } ul { padding-left:20px; }
+  footer { border-top:1px solid var(--border); margin-top:34px; background:var(--panel); } footer .wrap { padding:20px 18px; text-align:center; color:var(--muted); font-size:13px; }
+  footer a { color:var(--muted); }
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="logo" href="/">Guide<span>ToAnime</span></a><a href="/">&larr; Back to home</a></div></header>
+<main class="wrap">
+{% if page == "privacy" %}
+  <h1>Privacy Policy</h1><div class="upd">Last updated: {{ updated }}</div>
+  <p>GuideToAnime is a small anime guide and watch tracker. This page explains, in plain language, what information the site handles.</p>
+  <h2>What we store</h2>
+  <ul>
+    <li><b>Account:</b> the username you choose and your password, which is stored only as a secure hash (we cannot read it). We do not ask for your email address, name or phone number.</li>
+    <li><b>Your activity:</b> the list of anime you tick as watched, and the avatar you pick (if you have Premium).</li>
+    <li><b>Account dates:</b> when you joined and when you last logged in.</li>
+    <li><b>Tokens:</b> your token balance, when your Premium period ends, and a history of token changes (such as spending tokens on Premium).</li>
+    <li><b>Pictures you upload:</b> only if you are a Premium user and add your own avatars.</li>
+  </ul>
+  <h2>Cookies</h2>
+  <p>We use one essential cookie to keep you logged in. We do not use advertising or tracking cookies, and we do not run analytics on your activity.</p>
+  <h2>Other websites your browser contacts</h2>
+  <p>Anime posters and character pictures are loaded from the image servers of <b>AniList, MyAnimeList and Kitsu</b>, and the characters row may ask AniList or MyAnimeList (Jikan) for a picture. When your browser loads these, those services can see your IP address, as with any website. Please see their own privacy policies.</p>
+  <h2>Your choices</h2>
+  <ul>
+    <li>You can download your watched list from the account menu (Export).</li>
+    <li>You can delete your account at any time from the account menu. This removes your username, password hash, watched list and the avatars you uploaded.</li>
+  </ul>
+  <h2>Security</h2>
+  <p>Passwords are hashed and sessions are protected, but no website is perfectly secure. Please use a password you do not use anywhere else. Because we have no email on file, we cannot reset a forgotten password by email.</p>
+  <h2>Children</h2>
+  <p>The site is not aimed at children under 13, and we do not knowingly collect their information.</p>
+  <h2>Changes</h2>
+  <p>If this policy changes, the date at the top will be updated.</p>
+  <h2>Contact</h2>
+  <p>Questions or requests about your data: <a href="/contact">contact page</a>.</p>
+{% elif page == "terms" %}
+  <h1>Terms of Use</h1><div class="upd">Last updated: {{ updated }}</div>
+  <p>By using GuideToAnime you agree to these simple terms.</p>
+  <h2>What the site is</h2>
+  <p>GuideToAnime is a guide and watch tracker. It <b>does not host, stream or distribute any videos or files</b>. It helps you decide what to watch and keep count of what you have finished.</p>
+  <h2>Your account</h2>
+  <ul>
+    <li>You are responsible for keeping your password safe and for what happens on your account.</li>
+    <li>Do not try to break, overload or gain unauthorised access to the site or other people's accounts.</li>
+    <li>Do not upload pictures you do not have the right to use, or anything unlawful or offensive.</li>
+    <li>We may suspend or remove accounts that break these rules.</li>
+  </ul>
+  <h2>Content and ownership</h2>
+  <p>Anime titles, posters and character images belong to their respective owners and are shown for identification and information only. Poster and detail data comes from AniList, MyAnimeList and Kitsu. If you are a rights holder and want something removed, please <a href="/contact">contact us</a>.</p>
+  <h2>No guarantees</h2>
+  <p>Information such as episode counts, dub availability and finishing-time estimates may be incomplete or out of date. The site is provided "as is", without warranties, and we are not liable for any loss arising from its use.</p>
+  <h2>Premium</h2>
+  <p>Premium features (such as changing your avatar and adding your own avatars) can be unlocked for a limited period by spending tokens, or may be granted by the site admin. Tokens have no cash value, cannot be transferred or exchanged, and a Premium period that has been bought is not refundable. When buying tokens or earning them by watching ads becomes available, the price, any extra conditions and the refund rules will be shown before you confirm. Premium features and their token price may change.</p>
+  <h2>Changes</h2>
+  <p>We may update these terms. Continuing to use the site means you accept the updated terms.</p>
+{% else %}
+  <h1>Contact</h1>
+  <p>For questions, bug reports, privacy requests, or to ask for content to be removed:</p>
+  {% if contact %}<p><a href="mailto:{{ contact }}">{{ contact }}</a></p>
+  {% else %}<p>Contact details will be added here soon.</p>{% endif %}
+  <p>Please include your username if your message is about your account. We cannot reset passwords by email, since accounts have no email address.</p>
+{% endif %}
+</main>
+<footer><div class="wrap">{% include "_links.html" %}<br>&copy; <span id="yr"></span> GuideToAnime. Posters and details courtesy of AniList, MyAnimeList and Kitsu.</div></footer>
+<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+</body>
+</html>

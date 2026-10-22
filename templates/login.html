@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GuideToAnime - Login</title>
+{% include "_head.html" %}
+<meta name="robots" content="noindex">
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px 0;
+         background: radial-gradient(900px 450px at 50% 0%, #14234a 0%, #060914 65%) no-repeat, #060914; color: #f2f6ff; font-family: system-ui, sans-serif; }
+  form { background: #0d1326; border: 1px solid #1d2a4d; box-shadow: 0 0 40px rgba(94,200,255,.12); border-radius: 16px; padding: 28px;
+         width: 320px; display: flex; flex-direction: column; gap: 12px; }
+  h1 { margin: 0 0 4px; } h1 span { color: #5ec8ff; text-shadow: 0 0 18px rgba(94,200,255,.55); }
+  p { margin: 0; color: #8e9bc0; font-size: 14px; }
+  input, button { padding: 11px 12px; border-radius: 10px; border: 1px solid #1d2a4d;
+                  background: #141c36; color: #f2f6ff; font-size: 15px; }
+  button { cursor: pointer; } button.main { background: #5ec8ff; border-color: #5ec8ff; color: #04121f; font-weight: 700; }
+  body { flex-direction: column; gap: 22px; }
+  .hero { text-align: center; max-width: 760px; padding: 0 16px; }
+  .hero h2 { margin: 0 0 6px; font-size: 22px; letter-spacing: -.3px; }
+  .hero h2 span { color: #5ec8ff; text-shadow: 0 0 18px rgba(94,200,255,.55); }
+  .hero p { margin-bottom: 16px; }
+  .cast { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .cast figure { margin: 0; width: 104px; animation: bob 4s ease-in-out infinite; }
+  .cast figure:nth-child(even) { animation-delay: -2s; }
+  .cast img { width: 104px; height: 140px; object-fit: cover; object-position: center 15%; border-radius: 14px;
+              border: 2px solid #1d2a4d; box-shadow: 0 6px 22px rgba(94,200,255,.18); display: block; transition: border-color .2s, box-shadow .2s; }
+  .cast figure:hover img { border-color: #5ec8ff; box-shadow: 0 6px 28px rgba(94,200,255,.5); }
+  .cast figcaption { margin-top: 6px; font-size: 12px; color: #8e9bc0; line-height: 1.25; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @media (prefers-reduced-motion: reduce) { .cast figure { animation: none; } }
+  .err { color: #ff6b6b; font-size: 14px; }
+</style>
+</head>
+<body>
+<form method="post">
+  <h1>Guide<span>ToAnime</span></h1>
+  <p>Log in, or pick a username and password to create an account.</p>
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <input name="username" placeholder="Username" autocomplete="username" required autofocus>
+  <input name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+  <button class="main" name="action" value="login">Log in</button>
+  <button name="action" value="register">Create account</button>
+  <a href="/" style="text-align:center;color:#8e9bc0;font-size:14px;text-decoration:none">&larr; Back to home</a>
+</form>
+<section class="hero">
+  <h2>Your guide to <span>anime</span></h2>
+  <p>Find what to watch, track what you have seen, and see when you will finish.</p>
+  <div class="cast" id="cast"></div>
+</section>
+<div style="font-size:13px;color:#8e9bc0">{% include "_links.html" %}</div>
+<script>
+(() => {
+  const AV = {{ avatars|tojson }}.sort(() => Math.random() - 0.5).slice(0, 8);
+  const box = document.getElementById("cast");
+  async function remote(name) {
+    try {
+      const q = "query($s:String){Character(search:$s){image{large}}}";
+      const r = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q, variables: { s: name } }) });
+      return ((((await r.json()).data || {}).Character || {}).image || {}).large || "";
+    } catch (e) { return ""; }
+  }
+  AV.forEach(a => {
+    const fig = document.createElement("figure"), im = new Image(), cap = document.createElement("figcaption");
+    im.alt = a.name; im.referrerPolicy = "no-referrer"; cap.textContent = a.name;
+    let tried = false;
+    im.onerror = async () => { if (tried) { fig.remove(); return; } tried = true; const u = await remote(a.name); u ? im.src = u : fig.remove(); };
+    im.src = "/static/avatars/" + a.key + ".jpg";
+    fig.append(im, cap); box.appendChild(fig);
+  });
+})();
+</script>
+</body>
+</html>

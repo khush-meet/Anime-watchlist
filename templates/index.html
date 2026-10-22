@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GuideToAnime</title>
+{% include "_head.html" %}
+<meta name="robots" content="noindex">
+<style>
+  /* Gojo Satoru palette: Six Eyes blue, white hair, blindfold black, Hollow Purple */
+  :root { --bg:#060914; --panel:#0d1326; --panel2:#141c36; --text:#f2f6ff; --muted:#8e9bc0;
+          --accent:#5ec8ff; --accent-ink:#04121f; --purple:#a259ff; --ok:#7ef0d0; --border:#1d2a4d; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:radial-gradient(1200px 500px at 50% -10%,#14234a 0%,var(--bg) 60%) no-repeat,var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { padding:24px 20px 8px; max-width:1300px; margin:0 auto; }
+  .toprow { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  h1 { margin:0 0 4px; font-size:28px; letter-spacing:-.5px; color:#fff; } h1 span { color:var(--accent); text-shadow:0 0 18px rgba(94,200,255,.55); }
+  .chars { max-width:1300px; margin:0 auto; padding:6px 20px 14px; }
+  .chars-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .chars-head { gap:10px; } .chars-head input { flex:1 1 160px; max-width:320px; padding:6px 10px; font-size:13px; margin-left:auto; }
+  .chars-none { color:var(--muted); font-size:13px; padding:10px 2px; }
+  .chars-head h2 { margin:0; font-size:15px; color:var(--muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; }
+  .chars-head button { padding:4px 10px; font-size:12px; }
+  .strip { display:flex; gap:12px; overflow-x:auto; padding:4px 2px 10px; scroll-snap-type:x proximity; }
+  .strip::-webkit-scrollbar { height:6px; } .strip::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+  .char { flex:none; width:96px; text-align:center; scroll-snap-align:start; }
+  .char img { width:96px; height:128px; object-fit:cover; border-radius:12px; border:1px solid var(--border); display:block; background:var(--panel2); transition:transform .15s,border-color .15s,box-shadow .15s; }
+  .char:hover img { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 6px 20px rgba(94,200,255,.25); }
+  .char span { display:block; margin-top:5px; font-size:11px; color:var(--muted); line-height:1.25; max-height:2.5em; overflow:hidden; }
+  .account { position:relative; }
+  .avatar { width:48px; height:48px; border-radius:50%; padding:0; border:2px solid var(--accent); overflow:hidden; cursor:pointer;
+            background:linear-gradient(135deg,#5ec8ff,#a259ff); box-shadow:0 0 0 3px rgba(94,200,255,.18),0 0 18px rgba(94,200,255,.45);
+            display:flex; align-items:center; justify-content:center; color:#04121f; font-weight:800; font-size:20px; }
+  .avatar:hover { box-shadow:0 0 0 3px rgba(94,200,255,.35),0 0 26px rgba(94,200,255,.7); }
+  .avatar img { width:100%; height:100%; object-fit:cover; object-position:center 15%; display:block; }
+  .menu { position:absolute; right:0; top:58px; width:240px; background:var(--panel); border:1px solid var(--border); border-radius:14px;
+          padding:8px; z-index:20; box-shadow:0 14px 40px rgba(0,0,0,.6); display:none; }
+  .menu.open { display:block; }
+  .menu .who { display:flex; align-items:center; gap:10px; padding:8px; border-bottom:1px solid var(--border); margin-bottom:6px; }
+  .menu .who .avatar { width:40px; height:40px; font-size:16px; cursor:default; flex:none; }
+  .menu .who b { display:block; font-size:14px; word-break:break-all; } .menu .who small { color:var(--purple); font-size:12px; }
+  .menu button, .menu a { display:block; width:100%; text-align:left; background:none; border:0; border-radius:8px; padding:9px 10px;
+          color:var(--text); font-size:14px; text-decoration:none; cursor:pointer; font-family:inherit; }
+  .menu button:hover, .menu a:hover { background:var(--panel2); color:var(--accent); }
+  .menu a.out { color:#ff8b9a; }
+  .menu .dangerlink { color:#ff8b9a; }
+  .menu .locked { color:var(--muted); }
+  .menu .star { color:#ffd166; }
+  .avgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .avopt { padding:0; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--panel2); display:flex; flex-direction:column; }
+  .avopt img { width:100%; aspect-ratio:3/4; object-fit:cover; object-position:center 15%; display:block; }
+  .avopt span { font-size:11px; padding:4px 3px; color:var(--muted); line-height:1.2; }
+  .avopt.sel { border-color:var(--accent); box-shadow:0 0 14px rgba(94,200,255,.5); }
+  .avopt:hover { border-color:var(--accent); }
+  .avwrap, .char { position:relative; }
+  .row2 { display:flex; gap:8px; } .row2 input { flex:1; min-width:0; } .row2 button { white-space:nowrap; font-size:13px; }
+  .avwrap.gone { opacity:.45; } .avrestore { position:absolute; left:50%; top:40%; transform:translateX(-50%); z-index:3; font-size:12px; padding:5px 9px; background:var(--accent); color:var(--accent-ink); border:0; font-weight:700; }
+  .avdel { position:absolute; top:4px; right:4px; width:22px; height:22px; padding:0; border-radius:50%; background:rgba(0,0,0,.7); border:1px solid #e5484d; color:#ff8b9a; font-size:12px; line-height:1; z-index:2; }
+  .avgrid { max-height:52vh; overflow:auto; padding:2px; }
+  .avedit { position:absolute; top:4px; left:4px; width:22px; height:22px; padding:0; border-radius:50%; background:rgba(0,0,0,.7); border:1px solid var(--accent); color:var(--accent); font-size:12px; line-height:1; z-index:2; }
+  .avtag { display:block; font-size:10px; color:var(--accent); padding-bottom:3px; }
+  #avmsg, #prmsg, #admsg, #edmsg { font-size:13px; color:var(--accent); min-height:1.2em; }
+  .stats { color:var(--muted); font-size:14px; }
+  .bar { height:8px; background:var(--panel2); border-radius:99px; margin:12px 0 0; overflow:hidden; }
+  .bar > div { height:100%; width:0; background:linear-gradient(90deg,var(--accent),#fff,var(--purple)); transition:width .3s; }
+  .controls { position:sticky; top:0; z-index:5; background:rgba(6,9,20,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); }
+  .controls-inner { max-width:1300px; margin:0 auto; padding:12px 20px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  input[type=search], input[type=text], input[type=number], select, button { background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-size:14px; font-family:inherit; }
+  input[type=search] { flex:1 1 220px; min-width:160px; }
+  button { cursor:pointer; } button:hover, select:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+  button.danger { background:#3a1d22; border-color:#e5484d; color:#ff8b8f; }
+  label.chk { display:flex; gap:6px; align-items:center; font-size:14px; color:var(--muted); cursor:pointer; }
+  main { max-width:1300px; margin:0 auto; padding:20px; }
+  .count { color:var(--muted); font-size:14px; margin-bottom:14px; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; transition:transform .15s,border-color .15s; }
+  .card:hover { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 6px 24px rgba(94,200,255,.15); }
+  .card.done { opacity:.6; }
+  .card.done .poster::after { content:"WATCHED"; position:absolute; inset:auto 0 0 0; text-align:center; background:rgba(94,200,255,.92); color:#04121f; font-weight:700; font-size:12px; padding:4px; letter-spacing:1px; }
+  .poster { position:relative; aspect-ratio:2/3; background:var(--panel2); }
+  .poster .ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:800; color:rgba(255,255,255,.85);
+                background:linear-gradient(135deg,hsl(var(--h) 60% 35%),hsl(calc(var(--h) + 40) 60% 22%)); }
+  .poster img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .tick { position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:50%; border:2px solid #fff; background:rgba(0,0,0,.55); color:#fff; font-size:18px; padding:0; display:flex; align-items:center; justify-content:center; z-index:2; }
+  .card.done .tick { background:var(--accent); border-color:var(--accent); color:#04121f; }
+  .badges { position:absolute; top:8px; left:8px; display:flex; flex-direction:column; gap:4px; z-index:2; }
+  .badge { font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; background:rgba(0,0,0,.65); width:fit-content; }
+  .badge.essential { background:var(--purple); } .badge.recommended { background:var(--accent); color:#04121f; } .badge.hindi { background:#f2f6ff; color:#0d1326; }
+  .info { padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .title { font-weight:650; font-size:14px; line-height:1.3; }
+  .meta { color:var(--muted); font-size:12px; }
+  .genres { display:flex; flex-wrap:wrap; gap:4px; }
+  .genres span { font-size:11px; background:var(--panel2); padding:2px 7px; border-radius:99px; color:var(--muted); }
+  .note { font-size:12px; color:#c9a8ff; }
+  button.edit { align-self:flex-start; padding:5px 12px; font-size:12px; margin-top:auto; }
+  .more { display:block; margin:24px auto; }
+  .empty { text-align:center; color:var(--muted); padding:60px 0; }
+  dialog { background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:16px; padding:0; width:min(480px,92vw); }
+  dialog::backdrop { background:rgba(0,0,0,.65); }
+  dialog form { padding:20px; display:flex; flex-direction:column; gap:10px; max-height:90vh; overflow:auto; }
+  dialog h2 { margin:0 0 4px; font-size:20px; }
+  dialog label { font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:4px; }
+  dialog label.row { flex-direction:row; align-items:center; gap:8px; }
+  dialog .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  dialog .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  dialog .hint { font-size:12px; color:var(--muted); }
+  dialog .btns { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .pbar { height:10px; border-radius:99px; background:var(--panel2); overflow:hidden; }
+  .pbar i { display:block; height:100%; width:0; background:var(--accent); transition:width .4s; }
+  .pbar.busy i { width:35% !important; animation:slide 1.2s ease-in-out infinite alternate; }
+  @keyframes slide { from { margin-left:0; } to { margin-left:65%; } }
+  #updpill { position:fixed; left:14px; bottom:14px; z-index:50; background:var(--panel); border:1px solid var(--accent); color:var(--text); border-radius:99px; padding:8px 14px 10px; font-size:13px; cursor:pointer; min-width:190px; box-shadow:0 6px 24px rgba(0,0,0,.5); }
+  #updpill .pbar { margin-top:6px; height:6px; }
+  @media (prefers-reduced-motion:reduce) { .pbar.busy i { animation:none; } }
+  .sitefoot { max-width:1100px; margin:24px auto 30px; padding:0 16px; text-align:center; color:var(--muted); font-size:12px; }
+  .sitefoot a { color:var(--muted); }
+  #usersdlg { width:min(980px,96vw); }
+  .ustats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .ustats div { background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; }
+  .ustats b { font-size:26px; color:var(--accent); line-height:1.1; } .ustats span { font-size:12px; color:var(--muted); }
+  .ufilters { display:grid; grid-template-columns:1fr auto; gap:8px; }
+  .uwrap { overflow:auto; max-height:46vh; border:1px solid var(--border); border-radius:12px; }
+  #utable { width:100%; border-collapse:collapse; font-size:13px; white-space:nowrap; }
+  #utable th, #utable td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); }
+  #utable th { position:sticky; top:0; background:var(--panel2); color:var(--muted); font-weight:600; }
+  #utable td.acts { display:flex; gap:6px; } #utable td.acts button { padding:4px 8px; font-size:12px; }
+  .upager { display:flex; align-items:center; justify-content:center; gap:12px; font-size:13px; color:var(--muted); }
+  .tokbig { font-size:38px; font-weight:800; color:var(--accent); line-height:1; }
+</style>
+</head>
+<body>
+<header>
+  <div class="toprow">
+    <h1>Guide<span>ToAnime</span></h1>
+    <div class="account" id="account">
+      <button class="avatar" id="avatarBtn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" title="Account">{{ username[:1]|upper }}</button>
+      <div class="menu" id="menu" role="menu">
+        <div class="who"><span class="avatar" id="avatarSm">{{ username[:1]|upper }}</span>
+          <div><b>{{ username }}</b>{% if is_owner %}<small>Admin ⭐</small>{% elif premium %}<small class="star">Premium ⭐</small>{% else %}<small>Free account</small>{% endif %}</div></div>
+        {% if premium %}<button id="changeAv" type="button">🎨 Change avatar</button>
+        {% else %}<button id="changeAv" type="button" class="locked">🔒 Change avatar (Premium)</button>{% endif %}
+        {% if not is_owner %}<button id="tokBtn" type="button">🪙 Tokens &amp; Premium <small style="float:right">{{ tokens }}</small></button>{% endif %}
+        {% if is_owner %}<button id="premBtn" type="button">👥 Manage users</button>{% endif %}
+        {% if is_owner %}<button id="updBtn" type="button">🔄 Update site (titles &amp; posters)</button>{% endif %}
+        {% if premium %}<button id="addAvBtn" type="button">➕ {% if is_owner %}Add avatar for everyone{% else %}Add my own avatar{% endif %}</button>{% endif %}
+        <button id="export" type="button">⬇ Export watched list</button>
+        <button id="import" type="button">⬆ Import watched list</button>
+        {% if not is_owner %}<button id="delAcc" type="button" class="dangerlink">🗑 Delete account</button>{% endif %}
+        <a class="out" href="/logout">Log out</a>
+      </div>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="bar"><div id="barfill"></div></div>
+</header>
+
+<section class="chars" id="chars" hidden>
+  <div class="chars-head"><h2>Characters</h2><input type="search" id="cq" placeholder="Search characters..." autocomplete="off"><button id="reshuffle" type="button">🎲 Shuffle</button></div>
+  <div class="strip" id="strip"></div>
+</section>
+
+<div class="controls"><div class="controls-inner">
+  <input type="search" id="q" placeholder="Search titles...">
+  <select id="genre"><option value="">All genres</option></select>
+  <select id="tier">
+    <option value="">All tiers</option><option value="essential">Essential</option>
+    <option value="recommended">Recommended</option><option value="optional">Optional</option>
+  </select>
+  <select id="kind">
+    <option value="">Series + Movies</option><option value="Series">Series</option><option value="Movie">Movies</option>
+  </select>
+  <select id="sort">
+    <option value="tier">Sort: Best first</option><option value="new">Sort: Newly added</option>
+    <option value="title">Sort: A to Z</option><option value="year">Sort: Newest year</option>
+    <option value="hours">Sort: Shortest</option>
+  </select>
+  <label class="chk"><input type="checkbox" id="hindi"> Hindi dub</label>
+  <label class="chk"><input type="checkbox" id="hidew"> Hide watched</label>
+  <input type="file" id="file" accept="application/json" hidden>
+  {% if is_owner %}<button class="primary" id="add">+ Add anime</button>{% endif %}
+</div></div>
+
+<main>
+  <div class="count" id="count"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" hidden>Load more</button>
+</main>
+<footer class="sitefoot">{% include "_links.html" %} &middot; Posters and details courtesy of AniList, MyAnimeList and Kitsu.</footer>
+
+<dialog id="avdlg">
+  <form method="dialog">
+    <h2>Choose your avatar ⭐</h2>
+    <div class="row2"><input type="search" id="avq" placeholder="Search characters..."><button type="button" id="avDefault">↺ Use default avatar</button></div>
+    <div class="avgrid" id="avgrid"></div>
+    <div id="avmsg"></div>
+    <div class="btns"><button>Close</button></div>
+  </form>
+</dialog>
+{% if not is_owner %}
+<dialog id="deldlg">
+  <form method="dialog">
+    <h2>Delete your account?</h2>
+    <p class="hint">This permanently deletes your account, your watched list and any avatars you added. It can't be undone.</p>
+    <label>Your password <input type="password" id="delPw" autocomplete="current-password"></label>
+    <label>Type <b>I agree</b> to confirm <input type="text" id="delConfirm" autocomplete="off" placeholder="I agree"></label>
+    <div id="delmsg" style="color:#ff8b9a;font-size:13px;min-height:1.2em"></div>
+    <div class="btns"><button>Cancel</button><button type="button" id="delGo" class="danger" disabled>Delete my account</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% if not is_owner %}
+<dialog id="tokdlg">
+  <form method="dialog">
+    <h2>Tokens &amp; Premium</h2>
+    <div style="display:flex;align-items:baseline;gap:10px"><span class="tokbig" id="tokBal">0</span><span class="hint">tokens</span></div>
+    <div id="tokStatus" class="hint"></div>
+    <div class="hint">Premium lets you change your avatar and add your own avatars. Spend tokens to unlock it.</div>
+    <button type="button" id="tokBuyPrem" class="primary" disabled>Get Premium</button>
+    <div id="tokCostHint" class="hint"></div>
+    <div class="two"><button type="button" disabled>Buy tokens (coming soon)</button><button type="button" disabled>Watch an ad (coming soon)</button></div>
+    <div id="tokmsg" style="font-size:13px;min-height:1.2em"></div>
+    <div class="btns"><button>Close</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% if premium %}
+<dialog id="addavdlg">
+  <form method="dialog">
+    <h2>{% if is_owner %}Add avatar for everyone{% else %}Add my own avatar{% endif %}</h2>
+    <label>Character name <input type="text" id="adName" maxlength="60" placeholder="e.g. Rimuru Tempest"></label>
+    <label>Picture (JPG, PNG, WEBP or GIF, max 1 MB) <input type="file" id="adFile" accept="image/*"></label>
+    <div class="hint">{% if is_owner %}Everyone will see this character in the Characters row, and Premium users can choose it as their avatar.{% else %}Only you will see this character. You can add up to 10.{% endif %}</div>
+    <div id="admsg"></div>
+    <div class="btns"><button type="button" id="adGo" class="primary">Add</button><button>Close</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% if premium %}
+<dialog id="editavdlg">
+  <form method="dialog">
+    <h2>Edit avatar</h2>
+    <label>Character name <input type="text" id="edName" maxlength="60"></label>
+    <label>New picture (optional) <input type="file" id="edFile" accept="image/*"></label>
+    <div id="edmsg"></div>
+    <div class="btns"><button type="button" id="edReset" class="danger" hidden>Reset to original</button><button type="button" id="edGo" class="primary">Save</button><button>Close</button></div>
+  </form>
+</dialog>
+<dialog id="usersdlg">
+  <form method="dialog">
+    <h2>Users</h2>
+    <div class="ustats">
+      <div><b id="uTotal">0</b><span>Total accounts</span></div>
+      <div><b id="uPrem">0</b><span>Premium ⭐</span></div>
+      <div><b id="uFree">0</b><span>Free</span></div>
+    </div>
+    <div class="ufilters"><input type="search" id="uq" placeholder="Search username..." autocomplete="off">
+      <select id="uf"><option value="all">All users</option><option value="premium">Premium only</option><option value="free">Free only</option></select></div>
+    <div class="uwrap"><table id="utable"><thead><tr><th>Username</th><th>Plan</th><th>Tokens</th><th>Watched</th><th>Joined</th><th>Last login</th><th>Actions</th></tr></thead><tbody id="ubody"></tbody></table></div>
+    <div class="upager"><button type="button" id="uPrev">&larr; Prev</button><span id="uPage"></span><button type="button" id="uNext">Next &rarr;</button></div>
+    <div id="umsg" style="font-size:13px;min-height:1.2em"></div>
+    <div class="btns"><button>Close</button></div>
+  </form>
+</dialog>
+<div id="updpill" hidden role="status" title="Click to open"><span id="updpilltxt"></span><div class="pbar" id="updpillbar"><i></i></div></div>
+<dialog id="upddlg">
+  <form method="dialog">
+    <h2>Update site</h2>
+    <div class="hint">Admin only. Reads the list on animedubhindi.link and fetches missing posters from AniList, MyAnimeList and Kitsu. Posters and details you edited yourself are never replaced.</div>
+    <div id="updinfo"></div>
+    <div class="pbar" id="updbar"><i></i></div>
+    <label class="row"><input type="checkbox" id="updAuto"> Also update automatically every 6 hours</label>
+    <div id="updmsg"></div>
+    <div class="btns"><button type="button" id="updImg">Fetch missing posters</button><button type="button" id="updTit">Update titles</button><button type="button" id="updAll" class="primary">Update all</button><button>Close</button></div>
+  </form>
+</dialog>
+{% endif %}
+
+{% if is_owner %}
+<dialog id="dlg">
+  <form id="form">
+    <h2 id="dlgtitle">Add anime</h2>
+    <input type="hidden" id="f_uid">
+    <label>Name
+      <input type="text" id="f_title" maxlength="200" required>
+    </label>
+    <div class="two">
+      <label>Type
+        <select id="f_kind"><option value="Series">Series</option><option value="Movie">Movie</option></select>
+      </label>
+      <label>Priority
+        <select id="f_tier">
+          <option value="optional">Optional</option>
+          <option value="recommended">Recommended</option>
+          <option value="essential">Must watch</option>
+        </select>
+      </label>
+    </div>
+    <div class="three">
+      <label>Year <input type="number" id="f_year" min="1900" max="2100"></label>
+      <label>Episodes <input type="number" id="f_eps" min="1" max="5000"></label>
+      <label>Minutes each <input type="number" id="f_mins" min="1" max="600"></label>
+    </div>
+    <label>Genres (separate with commas)
+      <input type="text" id="f_genres" placeholder="Action, Fantasy">
+    </label>
+    <label class="row"><input type="checkbox" id="f_hindi"> Hindi dub available</label>
+    <label>Note (optional)
+      <input type="text" id="f_note" maxlength="300" placeholder="Watch season 1 first.">
+    </label>
+    <label>Poster picture from your computer
+      <input type="file" id="f_file" accept="image/*">
+    </label>
+    <label>...or paste a picture link
+      <input type="text" id="f_url" placeholder="https://...">
+    </label>
+    <div class="hint">Episodes and minutes are used to count hours. A new picture replaces the old one.</div>
+    <div class="btns">
+      <button type="button" class="danger" id="f_delete" hidden>Delete</button>
+      <button type="button" id="f_cancel">Cancel</button>
+      <button type="submit" class="primary" id="f_save">Save</button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+
+<script>
+const TITLES = {{ titles|tojson }};
+const IS_OWNER = {{ 'true' if is_owner else 'false' }};
+const PAGE = 60;
+const TIER_RANK = { essential: 0, recommended: 1, optional: 2 };
+
+const watched = {};
+{{ watched|tojson }}.forEach((u) => (watched[u] = true));
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hours = (x) => (x.eps && x.mins) ? (x.eps * x.mins) / 60 : null;
+const hue = (s) => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+const fmtHours = (h) => h == null ? "" : (h < 10 ? h.toFixed(1) : Math.round(h)) + " h";
+const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+let shown = PAGE, current = [];
+
+function applyFilters() {
+  const q = $("q").value.trim().toLowerCase();
+  const g = $("genre").value, tier = $("tier").value, kind = $("kind").value;
+  const hindi = $("hindi").checked, hideW = $("hidew").checked, sort = $("sort").value;
+  current = TITLES.filter((x) =>
+    (!q || x.title.toLowerCase().includes(q)) && (!g || x.genres.includes(g)) &&
+    (!tier || x.tier === tier) && (!kind || x.kind === kind) &&
+    (!hindi || x.hindi) && (!hideW || !watched[x.uid]));
+  current.sort((a, b) => {
+    if (sort === "title") return a.title.localeCompare(b.title);
+    if (sort === "year") return (b.year || 0) - (a.year || 0);
+    if (sort === "new") return b.added - a.added;
+    if (sort === "hours") return (hours(a) ?? 1e9) - (hours(b) ?? 1e9);
+    return TIER_RANK[a.tier] - TIER_RANK[b.tier];
+  });
+}
+
+function cardHTML(x) {
+  const meta = [x.kind, x.year, x.eps ? x.eps + " ep" : "", fmtHours(hours(x))].filter(Boolean).join(" · ");
+  const img = x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
+  const badges =
+    (x.tier !== "optional" ? `<span class="badge ${x.tier}">${x.tier === "essential" ? "MUST WATCH" : "RECOMMENDED"}</span>` : "") +
+    (x.hindi ? `<span class="badge hindi">HINDI</span>` : "");
+  const edit = IS_OWNER ? `<button class="edit">Edit</button>` : "";
+  return `
+  <div class="card ${watched[x.uid] ? "done" : ""}" data-uid="${esc(x.uid)}">
+    <div class="poster">
+      <div class="ph" style="--h:${hue(x.title)}">${esc(x.title.trim()[0] || "?")}</div>${img}
+      <div class="badges">${badges}</div>
+      <button class="tick" title="Mark watched" aria-label="Mark watched">✓</button>
+    </div>
+    <div class="info">
+      <div class="title">${esc(x.title)}</div>
+      <div class="meta">${esc(meta)}</div>
+      <div class="genres">${x.genres.map((g) => `<span>${esc(g)}</span>`).join("")}</div>
+      ${x.note ? `<div class="note">${esc(x.note)}</div>` : ""}
+      ${edit}
+    </div>
+  </div>`;
+}
+
+function render() {
+  const slice = current.slice(0, shown);
+  $("grid").innerHTML = slice.length ? slice.map(cardHTML).join("") : `<div class="empty">Nothing matches your filters.</div>`;
+  $("count").textContent = `Showing ${slice.length} of ${current.length} titles`;
+  $("more").hidden = shown >= current.length;
+}
+
+function updateStats() {
+  let done = 0, seen = 0, left = 0;
+  for (const x of TITLES) {
+    const h = hours(x) || 0;
+    if (watched[x.uid]) { done++; seen += h; } else left += h;
+  }
+  $("stats").textContent = `${done} / ${TITLES.length} watched · ${Math.round(seen)} hours watched · about ${Math.round(left)} hours left (where known)`;
+  $("barfill").style.width = TITLES.length ? (done / TITLES.length * 100) + "%" : "0";
+}
+
+function refresh() { shown = PAGE; applyFilters(); render(); }
+
+function setWatched(uid, on, card) {
+  if (on) watched[uid] = true; else delete watched[uid];
+  card.classList.toggle("done", on);
+  updateStats();
+  if ($("hidew").checked) { applyFilters(); render(); }
+}
+
+/* ---------- admin: add / edit form ---------- */
+function openForm(x) {
+  const dlg = $("dlg");
+  if (!dlg) return;
+  const editing = !!x;
+  $("dlgtitle").textContent = editing ? "Edit anime" : "Add anime";
+  $("f_uid").value = editing ? x.uid : "";
+  $("f_title").value = editing ? x.title : "";
+  $("f_kind").value = editing ? x.kind : "Series";
+  $("f_tier").value = editing ? x.tier : "optional";
+  $("f_year").value = editing && x.year ? x.year : "";
+  $("f_eps").value = editing && x.eps ? x.eps : "";
+  $("f_mins").value = editing && x.mins ? x.mins : "";
+  $("f_genres").value = editing ? x.genres.filter((g) => g !== "Unsorted").join(", ") : "";
+  $("f_hindi").checked = editing ? !!x.hindi : true;
+  $("f_note").value = editing ? (x.note || "") : "";
+  $("f_url").value = "";
+  $("f_file").value = "";
+  $("f_delete").hidden = !editing;                     // the admin can delete any anime
+  dlg.showModal();
+}
+
+/* shrink big pictures in the browser so they stay small */
+function shrink(file) {
+  return new Promise((resolve) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, 500 / img.width, 750 / img.height);
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.width * s));
+      c.height = Math.max(1, Math.round(img.height * s));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => { URL.revokeObjectURL(url); resolve(b || file); }, "image/jpeg", 0.85);
+    };
+    img.onerror = () => resolve(file);
+    img.src = url;
+  });
+}
+
+if (IS_OWNER) {
+  $("add").addEventListener("click", () => openForm(null));
+  $("f_cancel").addEventListener("click", () => $("dlg").close());
+
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const save = $("f_save");
+    save.disabled = true; save.textContent = "Saving...";
+    try {
+      const fd = new FormData();
+      fd.append("uid", $("f_uid").value);
+      fd.append("title", $("f_title").value);
+      fd.append("kind", $("f_kind").value);
+      fd.append("tier", $("f_tier").value);
+      fd.append("year", $("f_year").value);
+      fd.append("eps", $("f_eps").value);
+      fd.append("mins", $("f_mins").value);
+      fd.append("genres", $("f_genres").value);
+      fd.append("hindi", $("f_hindi").checked ? "1" : "0");
+      fd.append("note", $("f_note").value);
+      fd.append("image_url", $("f_url").value);
+      const file = $("f_file").files[0];
+      if (file) fd.append("image", await shrink(file), "poster.jpg");
+      const r = await fetch("/api/title", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { location.reload(); return; }
+      if (r.status === 401) { location.href = "/login"; return; }
+      alert(j.error || "Could not save. Please try again.");
+    } catch (err) {
+      alert("Could not save. Check your internet and try again.");
+    }
+    save.disabled = false; save.textContent = "Save";
+  });
+
+  $("f_delete").addEventListener("click", async () => {
+    const uid = $("f_uid").value;
+    if (!uid || !confirm("Delete this anime for everyone? It will also be removed from every watched list. This cannot be undone.")) return;
+    const r = await fetch(`/api/title/${encodeURIComponent(uid)}/delete`, { method: "POST" });
+    if (r.ok) location.reload(); else alert("Could not delete.");
+  });
+}
+
+/* ---------- clicks on cards ---------- */
+$("grid").addEventListener("click", async (e) => {
+  const editBtn = e.target.closest(".edit");
+  if (editBtn) {
+    const uid = editBtn.closest(".card").dataset.uid;
+    openForm(TITLES.find((t) => t.uid === uid));
+    return;
+  }
+  const btn = e.target.closest(".tick");
+  if (!btn) return;
+  const card = btn.closest(".card"), uid = card.dataset.uid, on = !watched[uid];
+  setWatched(uid, on, card);
+  try {
+    const r = await post("/api/watch", { uid, on });
+    if (r.status === 401) { location.href = "/login"; return; }
+    if (!r.ok) throw new Error();
+  } catch (err) {
+    setWatched(uid, !on, card);
+    alert("Could not save your tick. Check your internet and try again.");
+  }
+});
+
+["q", "genre", "tier", "kind", "sort", "hindi", "hidew"].forEach((id) =>
+  $(id).addEventListener(id === "q" ? "input" : "change", refresh));
+$("more").addEventListener("click", () => { shown += PAGE; render(); });
+
+$("export").addEventListener("click", () => { location.href = "/api/export"; });
+$("import").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const r = await post("/api/import", JSON.parse(await f.text()));
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    alert(`Imported ${j.added} watched titles.`);
+    location.reload();
+  } catch (err) { alert("That file isn't a valid GuideToAnime export."); }
+  e.target.value = "";
+});
+
+const genreSet = [...new Set(TITLES.flatMap((x) => x.genres))].sort();
+$("genre").insertAdjacentHTML("beforeend", genreSet.map((g) => `<option>${esc(g)}</option>`).join(""));
+updateStats();
+refresh();
+
+// ---- famous anime characters (pictures live in static/avatars/, run fetch_avatars.py once) ----
+const AV = {{ avatars|tojson }};
+const PREMIUM = {{ 'true' if premium else 'false' }};
+const IS_ADMIN = {{ 'true' if is_owner else 'false' }};
+const AVBY = Object.fromEntries(AV.map(a => [a.key, a]));
+let curAvatar = {{ avatar_key|tojson }};
+const DEFAULT_KEY = {{ default_key|tojson }};
+const lget = k => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } };
+const lset = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+// turn any picture the browser can open (JPG, PNG, WEBP, AVIF, ...) into a small clean JPEG
+function toJpeg(file, side) {
+  side = side || 640;
+  return new Promise((resolve) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const sc = Math.min(1, side / img.width, side / img.height);
+      const c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => { URL.revokeObjectURL(url); resolve(b); }, "image/jpeg", 0.88);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
+
+// backup: if the local file is missing, look the character up on AniList, then Jikan
+async function remoteImage(name) {
+  const ck = "gta_img_" + name;
+  if (lget(ck)) return lget(ck);
+  let url = "";
+  try {
+    const q = "query($s:String){Character(search:$s){image{large}}}";
+    const r = await fetch("https://graphql.anilist.co", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q, variables: { s: name } }) });
+    const j = await r.json();
+    url = (((j.data || {}).Character || {}).image || {}).large || "";
+  } catch (e) {}
+  if (!url) {
+    try {
+      const r = await fetch("https://api.jikan.moe/v4/characters?order_by=favorites&sort=desc&limit=1&q=" + encodeURIComponent(name));
+      const j = await r.json();
+      url = (((j.data || [])[0] || {}).images || {}).jpg ? j.data[0].images.jpg.image_url : "";
+    } catch (e) {}
+  }
+  if (url) lset(ck, url);
+  return url;
+}
+function charImg(a, onFail) {
+  const im = new Image();
+  im.alt = a.name; im.title = a.name; im.referrerPolicy = "no-referrer";
+  let stage = 0;
+  im.onerror = async () => {
+    if (!a.src && !a.pic && stage++ === 0) { const u = await remoteImage(a.name); if (u) { im.src = u; return; } }
+    im.onerror = null; if (onFail) onFail(im);
+  };
+  im.src = a.src || a.pic || ("/static/avatars/" + a.key + ".jpg");
+  return im;
+}
+
+// ---- admin: edit any character (built-in or uploaded) ----
+let editing = null;
+function openEdit(a) {
+  editing = a;
+  $("edName").value = a.name; $("edFile").value = ""; $("edmsg").textContent = "";
+  $("edReset").hidden = !(a.edited && !a.src);        // reset only makes sense for built-in characters you changed
+  $("editavdlg").showModal();
+}
+
+// ---- characters row ----
+function loadStrip() {
+  const strip = $("strip"), q = $("cq").value.trim().toLowerCase();
+  strip.innerHTML = "";
+  const live = AV.filter(a => !a.hidden);
+  let pool = q ? live.filter(a => a.name.toLowerCase().includes(q))          // search: every character
+               : [...live].filter(a => !a.premium || a.src).sort(() => Math.random() - 0.5).slice(0, 14);
+  pool.forEach(c => {
+    const d = document.createElement("div"); d.className = "char";
+    const sp = document.createElement("span"); sp.textContent = c.name;
+    d.append(charImg(c, im => d.remove()), sp);
+    if (IS_ADMIN || (PREMIUM && c.mine)) {            // admin: all; premium user: only the ones they added
+      const e = document.createElement("button");
+      e.type = "button"; e.className = "avedit"; e.textContent = "✎"; e.title = "Edit " + c.name;
+      e.onclick = () => openEdit(c);
+      d.appendChild(e);
+    }
+    strip.appendChild(d);
+  });
+  if (q && !pool.length) { const n = document.createElement("div"); n.className = "chars-none"; n.textContent = "No character found for \u201c" + $("cq").value.trim() + "\u201d."; strip.appendChild(n); }
+  $("chars").hidden = false;
+}
+let cqTimer; $("cq").addEventListener("input", () => { clearTimeout(cqTimer); cqTimer = setTimeout(loadStrip, 150); });
+$("reshuffle").addEventListener("click", () => { $("cq").value = ""; loadStrip(); });
+loadStrip();
+
+// ---- account avatar ----
+(function () {
+  const user = {{ username|tojson }};
+  const btn = $("avatarBtn"), sm = $("avatarSm"), menu = $("menu");
+  function setAvatar(key) {
+    curAvatar = key;
+    [btn, sm].forEach(el => {
+      el.textContent = "";
+      el.appendChild(charImg(AVBY[key] || AV[0], () => { el.textContent = (user[0] || "?").toUpperCase(); }));
+    });
+  }
+  setAvatar(curAvatar);
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = menu.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open);
+  });
+  document.addEventListener("click", (e) => { if (!menu.contains(e.target)) { menu.classList.remove("open"); btn.setAttribute("aria-expanded", false); } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") menu.classList.remove("open"); });
+
+  // change avatar (Premium and admin only)
+  function renderPicker() {
+    const grid = $("avgrid"), f = $("avq").value.trim().toLowerCase();
+    grid.innerHTML = "";
+    AV.filter(a => !f || a.name.toLowerCase().includes(f)).forEach(a => {
+      const w = document.createElement("div"); w.className = "avwrap" + (a.hidden ? " gone" : "");
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "avopt" + (a.key === curAvatar ? " sel" : ""); b.style.width = "100%";
+      const sp = document.createElement("span"); sp.textContent = a.name;
+      if (a.src) { const t = document.createElement("small"); t.className = "avtag"; t.textContent = a.shared ? "★ for everyone" : "🔒 only you"; sp.appendChild(t); }
+      b.append(charImg(a), sp);
+      b.onclick = async () => {
+        if (a.hidden) return;
+        const r = await fetch("/api/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: a.key }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { $("avmsg").textContent = j.error || "Could not change avatar."; return; }
+        setAvatar(a.key);
+        grid.querySelectorAll(".avopt").forEach(x => x.classList.toggle("sel", x === b));
+        $("avmsg").textContent = "Avatar changed to " + a.name + ".";
+      };
+      w.appendChild(b);
+      if (IS_ADMIN || (PREMIUM && a.mine)) {             // admin edits every character; a premium user edits their own
+        const e = document.createElement("button");
+        e.type = "button"; e.className = "avedit"; e.textContent = "✎"; e.title = "Edit this character";
+        e.onclick = () => openEdit(a);
+        w.appendChild(e);
+      }
+      if (IS_ADMIN && a.hidden) {                        // deleted built-in: admin can bring it back
+        const rs = document.createElement("button");
+        rs.type = "button"; rs.className = "avrestore"; rs.textContent = "↩ Restore";
+        rs.onclick = async () => {
+          const r = await fetch("/api/avatar/" + encodeURIComponent(a.key) + "/hide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hidden: false }) });
+          if (r.ok) { delete a.hidden; renderPicker(); loadStrip(); }
+        };
+        w.appendChild(rs);
+      } else if (IS_ADMIN && !a.src) {                   // admin can delete (hide) a built-in character
+        const d = document.createElement("button");
+        d.type = "button"; d.className = "avdel"; d.textContent = "✕"; d.title = "Delete this character";
+        d.onclick = async () => {
+          if (!confirm("Delete " + a.name + " for everyone? You can restore it later from this list.")) return;
+          const r = await fetch("/api/avatar/" + encodeURIComponent(a.key) + "/hide", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ hidden: true }) });
+          if (r.ok) { a.hidden = true; if (curAvatar === a.key) setAvatar(DEFAULT_KEY); renderPicker(); loadStrip(); }
+        };
+        w.appendChild(d);
+      }
+      if (a.src && (IS_ADMIN || a.mine)) {               // admin removes any upload; premium users remove their own
+        const d = document.createElement("button");
+        d.type = "button"; d.className = "avdel"; d.textContent = "✕"; d.title = "Delete this avatar option";
+        d.onclick = async () => {
+          if (!confirm("Delete " + a.name + "?")) return;
+          const r = await fetch("/api/avatar/" + encodeURIComponent(a.key) + "/delete", { method: "POST" });
+          if (r.ok) { AV.splice(AV.indexOf(a), 1); delete AVBY[a.key]; if (curAvatar === a.key) setAvatar(DEFAULT_KEY); renderPicker(); loadStrip(); }
+        };
+        w.appendChild(d);
+      }
+      grid.appendChild(w);
+    });
+  }
+  $("avq").addEventListener("input", renderPicker);
+  $("avDefault").addEventListener("click", async () => {
+    const r = await fetch("/api/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key: "" }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { $("avmsg").textContent = j.error || "Failed."; return; }
+    setAvatar(j.key); renderPicker(); $("avmsg").textContent = "Back to your default avatar.";
+  });
+  $("changeAv").addEventListener("click", () => {
+    menu.classList.remove("open");
+    if (!PREMIUM) { openTokens(); return; }
+    $("avmsg").textContent = ""; $("avq").value = "";
+    renderPicker();
+    $("avdlg").showModal();
+  });
+
+  // add an avatar: admin -> shared with everyone, premium user -> private to them
+  const ab = $("addAvBtn");
+  if (ab) {
+    ab.addEventListener("click", () => { menu.classList.remove("open"); $("admsg").textContent = ""; $("addavdlg").showModal(); });
+    $("adGo").addEventListener("click", async () => {
+      const name = $("adName").value.trim(), file = $("adFile").files[0];
+      if (!name || !file) { $("admsg").textContent = "Type a name and choose a picture."; return; }
+      const blob = await toJpeg(file);
+      if (!blob) { $("admsg").textContent = "Couldn't read that picture. Try a different file."; return; }
+      const fd = new FormData(); fd.append("name", name); fd.append("image", blob, "avatar.jpg");
+      const r = await fetch("/api/avatar/add", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("admsg").textContent = j.error || "Failed."; return; }
+      const a = { key: j.key, name: j.name, premium: true, shared: j.shared, mine: true, src: j.src };
+      AV.push(a); AVBY[a.key] = a; loadStrip();
+      $("admsg").textContent = j.name + (j.shared ? " added for everyone." : " added. Only you can see it.");
+      $("adName").value = ""; $("adFile").value = "";
+    });
+  }
+
+  // admin: save / reset edits
+  const eg = $("edGo");
+  if (eg) {
+    const refresh = () => { setAvatar(curAvatar); renderPicker(); loadStrip(); };
+    eg.addEventListener("click", async () => {
+      if (!editing) return;
+      const name = $("edName").value.trim(), file = $("edFile").files[0];
+      if (!name) { $("edmsg").textContent = "Name can't be empty."; return; }
+      const fd = new FormData(); fd.append("name", name);
+      if (file) {
+        const blob = await toJpeg(file);
+        if (!blob) { $("edmsg").textContent = "Couldn't read that picture. Try a different file."; return; }
+        fd.append("image", blob, "avatar.jpg");
+      }
+      const r = await fetch("/api/avatar/" + encodeURIComponent(editing.key) + "/edit", { method: "POST", body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("edmsg").textContent = j.error || "Failed."; return; }
+      editing.name = j.name;
+      if (editing.src) editing.src = j.src; else { editing.edited = true; if (j.pic) editing.pic = j.pic; }
+      $("edReset").hidden = !(editing.edited && !editing.src);
+      $("edmsg").textContent = "Saved."; refresh();
+    });
+    $("edReset").addEventListener("click", async () => {
+      if (!editing || !confirm("Undo your changes to " + editing.name + "?")) return;
+      const r = await fetch("/api/avatar/" + encodeURIComponent(editing.key) + "/reset", { method: "POST" });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("edmsg").textContent = j.error || "Failed."; return; }
+      editing.name = j.name; editing.edited = false; delete editing.pic;
+      $("edName").value = j.name; $("edReset").hidden = true; $("edmsg").textContent = "Back to the original."; refresh();
+    });
+  }
+
+  // delete account (must type "I agree")
+  const da = $("delAcc");
+  if (da) {
+    da.addEventListener("click", () => { menu.classList.remove("open"); $("delConfirm").value = ""; $("delPw").value = ""; $("delGo").disabled = true; $("delmsg").textContent = ""; $("deldlg").showModal(); });
+    $("delConfirm").addEventListener("input", () => { $("delGo").disabled = $("delConfirm").value.trim().toLowerCase() !== "i agree"; });
+    $("delGo").addEventListener("click", async () => {
+      const r = await fetch("/api/account/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: $("delConfirm").value, password: $("delPw").value }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) location.href = "/"; else $("delmsg").textContent = j.error || "Could not delete the account.";
+    });
+  }
+
+  // tokens and Premium (normal users)
+  async function loadTokens() {
+    const r = await fetch("/api/tokens");
+    if (!r.ok) return;
+    const s = await r.json();
+    $("tokBal").textContent = s.tokens;
+    $("tokStatus").textContent = s.permanent ? "Premium ⭐ (no expiry)" : s.premium ? "Premium ⭐ until " + new Date(s.premium_until * 1000).toLocaleDateString() : "Free account";
+    $("tokBuyPrem").textContent = `${s.premium && !s.permanent ? "Extend Premium" : "Get Premium"}: ${s.cost} tokens for ${s.days} days`;
+    $("tokBuyPrem").disabled = s.permanent || s.tokens < s.cost;
+    $("tokCostHint").textContent = !s.permanent && s.tokens < s.cost ? `You need ${s.cost - s.tokens} more tokens.` : "";
+  }
+  function openTokens() {
+    menu.classList.remove("open");
+    $("tokmsg").textContent = "";
+    $("tokdlg").showModal();
+    loadTokens();
+  }
+  if ($("tokBtn")) {
+    $("tokBtn").addEventListener("click", openTokens);
+    $("tokBuyPrem").addEventListener("click", async () => {
+      $("tokBuyPrem").disabled = true;
+      const r = await fetch("/api/premium/buy", { method: "POST" });
+      const j = await r.json().catch(() => ({}));
+      $("tokmsg").textContent = r.ok ? "Premium activated! Reload the page to use your new features." : (j.error || "Failed.");
+      loadTokens();
+    });
+  }
+
+  // admin: user management (counts, search, premium, tokens, password reset, delete)
+  const pb = $("premBtn");
+  if (pb) {
+    let upage = 1, utimer = null;
+    const dt = ts => ts ? new Date(ts * 1000).toLocaleDateString() : "—";
+    const jpost = async (url, body) => {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+      return { ok: r.ok, j: await r.json().catch(() => ({})) };
+    };
+    const btn = (label, title, fn) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.title = title; b.onclick = fn; return b; };
+    async function loadUsers() {
+      const r = await fetch(`/api/admin/users?q=${encodeURIComponent($("uq").value.trim())}&filter=${$("uf").value}&page=${upage}`);
+      if (!r.ok) { $("umsg").textContent = "Could not load users."; return; }
+      const d = await r.json();
+      $("uTotal").textContent = d.counts.total; $("uPrem").textContent = d.counts.premium; $("uFree").textContent = d.counts.free;
+      const pages = Math.max(1, Math.ceil(d.matched / d.per));
+      $("uPage").textContent = `Page ${d.page} of ${pages} (${d.matched} users)`;
+      $("uPrev").disabled = d.page <= 1; $("uNext").disabled = d.page >= pages;
+      const body = $("ubody"); body.innerHTML = "";
+      if (!d.users.length) { const tr = body.insertRow(), td = tr.insertCell(); td.colSpan = 7; td.textContent = "No users found."; return; }
+      d.users.forEach(u => {
+        const tr = body.insertRow();
+        const plan = u.permanent ? "Premium ⭐ (no expiry)" : u.premium ? "Premium ⭐ until " + dt(u.premium_until) : "Free";
+        [u.username, plan, u.tokens, u.watched, dt(u.joined), dt(u.last_login)].forEach(v => { tr.insertCell().textContent = v; });
+        const acts = tr.insertCell(); acts.className = "acts";
+        acts.append(
+          btn(u.premium ? "Remove ⭐" : "Give ⭐", u.premium ? "Make this a free account" : "Give Premium with no expiry", async () => {
+            const { ok, j } = await jpost(`/api/admin/users/${u.id}/premium`, { mode: u.premium ? "off" : "on" });
+            $("umsg").textContent = ok ? `${u.username} is now ${u.premium ? "a free user" : "Premium ⭐"}.` : (j.error || "Failed."); loadUsers();
+          }),
+          btn("🪙 Tokens", "Add or remove tokens", async () => {
+            const v = prompt(`Tokens to add to ${u.username} (a negative number removes). Balance: ${u.tokens}`, "100");
+            const amount = parseInt(v, 10);
+            if (!amount) return;
+            const { ok, j } = await jpost("/api/admin/tokens", { username: u.username, amount });
+            $("umsg").textContent = ok ? `${j.username} now has ${j.tokens} tokens.` : (j.error || "Failed."); loadUsers();
+          }),
+          btn("🔑 Reset password", "Set a temporary password", async () => {
+            if (!confirm(`Set a new temporary password for ${u.username}?`)) return;
+            const { ok, j } = await jpost(`/api/admin/users/${u.id}/password`);
+            $("umsg").textContent = ok ? `New password for ${u.username}: ${j.password}  (shown once - send it to them privately)` : (j.error || "Failed.");
+          }),
+          btn("🗑 Delete", "Delete this account", async () => {
+            if (prompt(`This permanently deletes ${u.username}, their watched list and their avatars.\nType the username to confirm:`) !== u.username) return;
+            const { ok, j } = await jpost(`/api/admin/users/${u.id}/delete`);
+            $("umsg").textContent = ok ? `${u.username} was deleted.` : (j.error || "Failed."); loadUsers();
+          }));
+      });
+    }
+    pb.addEventListener("click", () => { menu.classList.remove("open"); $("umsg").textContent = ""; upage = 1; $("usersdlg").showModal(); loadUsers(); });
+    $("uPrev").addEventListener("click", () => { upage--; loadUsers(); });
+    $("uNext").addEventListener("click", () => { upage++; loadUsers(); });
+    $("uf").addEventListener("change", () => { upage = 1; loadUsers(); });
+    $("uq").addEventListener("input", () => { clearTimeout(utimer); utimer = setTimeout(() => { upage = 1; loadUsers(); }, 250); });
+  }
+
+  // admin only: update titles from animedubhindi.link + fetch missing posters (progress is shown only to the admin)
+  const ub = $("updBtn");
+  if (ub) {
+    let wasRunning = false;
+    const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const bar = (el, s) => {
+      const pct = s.total ? Math.min(100, Math.round(100 * s.done / s.total)) : 0;
+      el.classList.toggle("busy", s.running && !s.total);       // no total yet (reading the website): moving bar
+      el.firstElementChild.style.width = (s.running ? pct : (s.total ? 100 : 0)) + "%";
+      return pct;
+    };
+    const show = async () => {
+      let s;
+      try { const r = await fetch("/api/admin/status"); if (!r.ok) return; s = await r.json(); } catch (e) { return; }
+      const pct = bar($("updbar"), s); bar($("updpillbar"), s);
+      $("updpill").hidden = !s.running;
+      $("updpilltxt").textContent = "🔄 " + s.msg + (s.total ? ` ${pct}%` : "");
+      $("updinfo").textContent = `Last update: ${s.last ? new Date(s.last * 1000).toLocaleString() : "never"} · ${s.missing} of ${s.total_titles} titles have no poster`;
+      if (document.activeElement !== $("updAuto")) $("updAuto").checked = s.auto;
+      ["updImg", "updTit", "updAll"].forEach(id => $(id).disabled = s.running);
+      if (s.running) { wasRunning = true; $("updmsg").textContent = "⏳ " + s.msg + (s.total ? ` (${pct}%)` : ""); return; }
+      $("updmsg").textContent = (s.msg === "Idle" ? "" : s.msg) + (wasRunning ? " Reload the page to see the changes." : "");
+      wasRunning = false;
+    };
+    const start = async what => {
+      const r = await post("/api/admin/update", { what });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("updmsg").textContent = j.error || "Failed."; return; }
+      show();
+    };
+    ub.addEventListener("click", () => { menu.classList.remove("open"); $("updmsg").textContent = ""; $("upddlg").showModal(); show(); });
+    $("updpill").addEventListener("click", () => { $("upddlg").showModal(); show(); });
+    $("updAll").addEventListener("click", () => start("all"));
+    $("updTit").addEventListener("click", () => start("titles"));
+    $("updImg").addEventListener("click", () => start("images"));
+    $("updAuto").addEventListener("change", e => post("/api/admin/auto", { on: e.target.checked }));
+    show();
+    setInterval(show, 3000);          // also shows updates that started by themselves (automatic ones)
+  }
+})();
+</script>
+</body>
+</html>
